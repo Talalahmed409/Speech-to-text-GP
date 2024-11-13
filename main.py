@@ -4,10 +4,9 @@ import threading
 import os
 from faster_whisper import WhisperModel
 
-NEON_GREEN = "\033[92m"  # Color for printing transcription (optional)
-RESET_COLOR = "\033[0m"  # Reset color
+NEON_GREEN = "\033[92m"  
+RESET_COLOR = "\033[0m"  
 
-# Global flag for recording status
 recording = False
 
 def list_input_devices(p):
@@ -15,7 +14,7 @@ def list_input_devices(p):
     print("Available audio input devices:")
     for i in range(p.get_device_count()):
         device_info = p.get_device_info_by_index(i)
-        if device_info.get("maxInputChannels") > 0:  # Only list input devices
+        if device_info.get("maxInputChannels") > 0: 
             print(f"{i}: {device_info.get('name')}")
 
     device_index = int(input("Enter the device index of your preferred microphone: "))
@@ -26,7 +25,7 @@ def record_audio(p, device_index, output_file):
     global recording
     stream = p.open(
         format=pyaudio.paInt16,
-        channels=1,  # Mono channel
+        channels=1, 
         rate=16000,
         input=True,
         frames_per_buffer=1024,
@@ -36,12 +35,10 @@ def record_audio(p, device_index, output_file):
     frames = []
     print("Press Enter to stop recording...\n")
 
-    # Continuously read audio frames
     while recording:
         data = stream.read(1024)
         frames.append(data)
 
-    # Save recorded frames as a .wav file
     with wave.open(output_file, 'wb') as wf:
         wf.setnchannels(1)
         wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
@@ -65,30 +62,23 @@ def initialize_model():
 if __name__ == "__main__":
     p = pyaudio.PyAudio()
     try:
-        # List devices and select input device
         device_index = list_input_devices(p)
 
-        # Initialize Whisper model
         model = initialize_model()
 
-        # File to save the recording
         output_file = "continuous_recording.wav"
 
-        # Start recording with threading
         recording = True
         recording_thread = threading.Thread(target=record_audio, args=(p, device_index, output_file))
         recording_thread.start()
 
-        # Wait for Enter key to stop recording
         input("Recording...")
         recording = False
         recording_thread.join()
 
-        # Transcribe after recording ends
         transcription = transcribe_audio(model, output_file)
         print(NEON_GREEN + transcription + RESET_COLOR)
 
-        # Save transcription to a log file
         with open("log.txt", "w") as log_file:
             log_file.write(transcription)
 
