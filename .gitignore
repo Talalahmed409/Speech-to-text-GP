@@ -1,1 +1,10 @@
 token.txt
+models
+__pycache__
+uploads
+continuous_recording.wav
+entire_session.wav
+log.txt
+output.wav
+temp_chunk.wav
+transcriptions.log
